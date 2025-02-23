@@ -1,0 +1,356 @@
+---
+title: "Kerala Age - wise Population"
+output:
+  html_document:
+    df_print: paged
+  html_notebook: default
+  pdf_document: default
+---
+
+```{r}
+
+#| label: setup
+#| warning: false
+#| echo: false
+
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+```
+
+
+**YEAR - 1961**
+
+```{r}
+# Original 1961 data
+population_data <- data.frame(
+  Age.group = c(rep("0-14y", 2), rep("15-19y", 2), rep("20-24Y", 2), rep("25-29Y", 2), 
+                rep("30-34Y", 2), rep("35-39Y", 2), rep("40-44Y", 2), rep("45-49Y", 2),
+                rep("50-54Y", 2), rep("55-59Y", 2), rep("Above 60", 2)),
+  Sex = rep(c("M", "F"), 11),
+  Population = c(3480500, 3747300, 842200, 895100, 728300, 787200, 626800, 673400,
+                 543700, 575700, 475600, 481100, 402200, 395000, 335200, 329000,
+                 275400, 276300, 219800, 225400, 432200, 461300)
+)
+
+# Convert Population to numeric (in case it's read as character)
+population_data$Population <- as.numeric(gsub(",", "", population_data$Population))
+
+# Calculate total population for each sex
+total_population <- population_data %>%
+  group_by(Sex) %>%
+  summarize(Total = sum(Population))
+
+# Calculate percentage of total population
+population_data <- population_data %>%
+  left_join(total_population, by = "Sex") %>%
+  mutate(Percentage = (Population / Total) * 100) %>%
+  mutate(Percentage = ifelse(Sex == "M", -Percentage, Percentage))
+
+# Plot the age pyramid with black and yellow colors
+ggplot(population_data, aes(x = Age.group, y = Percentage, fill = Sex)) +
+  geom_bar(stat = "identity", width = 0.7) +
+  scale_fill_manual(values = c("M" = "#ce4a37", "F" = "#38406b")) +
+  coord_flip() +
+  scale_y_continuous(labels = abs) +
+  labs(x = "Age Group",
+       y = "Percentage of Population",
+       fill = "Sex") +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        panel.background = element_rect(fill = "#f7f3e9")) # Added line for custom background color
+
+
+# Sum populations for different age groups
+working_age_population <- population_data %>%
+  filter(Age.group %in% c("15-19y", "20-24Y", "25-29Y", "30-34Y", "35-39Y", "40-44Y", "45-49Y", "50-54Y", "55-59Y")) %>%
+  summarize(Total = sum(Population)) %>%
+  pull(Total)
+
+elderly_population <- population_data %>%
+  filter(Age.group == "Above 60") %>%
+  summarize(Total = sum(Population)) %>%
+  pull(Total)
+
+# Calculate dependency ratio
+dependency_ratio <- ((elderly_population) / working_age_population) * 100
+
+# Print results
+cat("Working Age Population:", working_age_population, "\n")
+cat("Elderly Population:", elderly_population, "\n")
+cat("Dependency Ratio:", dependency_ratio, "%\n")
+
+```
+
+
+
+**YEAR - 1971**
+
+```{r}
+
+# Create the data frame
+data_1971 <- data.frame(
+  Age.group = c("0-14y", "0-14y", "15-19y", "15-19y", "20-24Y", "20-24Y", "25-29Y", "25-29Y", 
+                "30-39Y", "30-39Y", "40-49Y", "40-49Y", "50-59Y", "50-59Y", "Above 60", "Above 60"),
+  Sex = c("M", "F", "M", "F", "M", "F", "M", "F", "M", "F", "M", "F", "M", "F", "M", "F"),
+  Population_1971 = c(4345415, 4249847, 1127098, 1210207, 977869, 1012032, 664368, 723141, 1205088, 
+                 1282770, 995745, 960628, 639945, 624627, 631802, 695893)
+)
+
+# Calculate total population for percentage calculation
+total_population_1971 <- sum(data_1971$Population_1971)
+
+# Add percentage column
+data_1971$Percentage_1971 <- (data_1971$Population_1971 / total_population_1971) * 100
+
+# Prepare data for plotting
+data_plot <- data_1971 %>%
+  mutate(Percentage_1971 = ifelse(Sex == "M", -Percentage_1971, Percentage_1971))
+
+# Plot the age pyramid
+ggplot(data_plot, aes(x = Age.group, y = Percentage_1971, fill = Sex)) +
+  geom_bar(stat = "identity", position = "identity", width = 0.7) +
+  coord_flip() +
+  scale_fill_manual(values = c("M" = "#ce4a37", "F" = "#38406b")) +
+  labs(title = "Population Age Pyramid",
+       x = "Age Group",
+       y = "Percentage of Population") +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        panel.background = element_rect(fill = "#f7f3e9"))
+
+# Calculate total population for each age group
+pop_above_60 <- sum(data_1971[data_1971$Age.group == "Above 60", "Population_1971"])
+pop_working_age <- sum(data_1971[data_1971$Age.group %in% c("15-19y", "20-24Y", "25-29Y", "30-39Y", "40-49Y", "50-59Y"), "Population_1971"])
+
+# Calculate dependency ratio
+dependency_ratio <- (pop_above_60 / pop_working_age) * 100
+
+# Print the result
+dependency_ratio
+
+```
+
+
+
+**YEAR 1981**
+
+```{r}
+
+# Create the data frame
+data_1981 <- data.frame(
+  Age.group = c("0-14y", "0-14y", "15-19y", "15-19y", "20-24Y", "20-24Y", "25-29Y", "25-29Y", 
+                "30-34Y", "30-34Y", "35-39Y", "35-39Y", "40-49Y", "40-49Y", "50-59Y", "50-59Y", 
+                "Above 60", "Above 60"),
+  Sex = c("M", "F", "M", "F", "M", "F", "M", "F", "M", "F", "M", "F", "M", "F", "M", "F", "M", "F"),
+  Population_1981 = c(4521000, 4392000, 1444000, 1566000, 1250000, 1370000, 1001000, 1081000, 789000, 
+                 789000, 674000, 727000, 1138000, 1165000, 815000, 811000, 895000, 1022000)
+)
+
+# Calculate total population for percentage calculation
+total_population_1981 <- sum(data_1981$Population_1981)
+
+# Add percentage column
+data_1981$Percentage_1981 <- (data_1981$Population_1981 / total_population_1981) * 100
+
+# Prepare data for plotting
+data_plot1 <- data_1981 %>%
+  mutate(Percentage_1981 = ifelse(Sex == "M", -Percentage_1981, Percentage_1981))
+
+# Plot the age pyramid
+ggplot(data_plot1, aes(x = Age.group, y = Percentage_1981, fill = Sex)) +
+  geom_bar(stat = "identity", position = "identity", width = 0.7) +
+  coord_flip() +
+  scale_fill_manual(values = c("M" = "#ce4a37", "F" = "#38406b")) +
+  labs(x = "Age Group",
+       y = "Percentage of Population") +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        panel.background = element_rect(fill = "#f7f3e9"))
+
+# Calculate total population for each group
+pop_above_60_1981 <- sum(data_1981[data_1981$Age.group == "Above 60", "Population_1981"])
+pop_working_age_1981 <- sum(data_1981[data_1981$Age.group %in% c("15-19y", "20-24Y", "25-29Y", "30-34Y", "35-39Y", "40-49Y", "50-59Y"), "Population_1981"])
+
+# Calculate dependency ratio
+dependency_ratio_1981 <- (pop_above_60_1981 / pop_working_age_1981) * 100
+
+# Print the result
+dependency_ratio_1981
+
+
+```
+
+
+**YEAR 1991**
+
+```{r}
+# Create the data frame
+data_1991 <- data.frame(
+  Age.group = c("0-4Y", "0-4Y", "5-9Y", "5-9Y", "10-14Y", "10-14Y", "15-19y", "15-19y", 
+                "20-24Y", "20-24Y", "25-29Y", "25-29Y", "30-34Y", "30-34Y", "35-39Y", "35-39Y",
+                "40-44Y", "40-44Y", "45-49Y", "45-49Y", "50-54Y", "50-54Y", "55-59Y", "55-59Y",
+                "60-64Y", "60-64Y", "65-69Y", "65-69Y", "70-74Y", "70-74Y", "75-79Y", "75-79Y",
+                "Above 80", "Above 80"),
+  Sex = c("M", "F", "M", "F", "M", "F", "M", "F", "M", "F", "M", "F", "M", "F", "M", "F",
+          "M", "F", "M", "F", "M", "F", "M", "F", "M", "F", "M", "F", "M", "F", "M", "F",
+          "M", "F"),
+  Population_1991 = c(1365090, 1298620, 1459473, 1425373, 1564752, 1534328, 1467374, 1551965,
+                 1475802, 1636830, 1262730, 1398554, 1046690, 1060612, 1013437, 1036484,
+                 764030, 724101, 657954, 678628, 523257, 538602, 465404, 510493, 417045,
+                 454527, 324559, 374175, 199223, 232057, 121978, 154954, 128057, 160790)
+)
+
+# Calculate total population for percentage calculation
+total_population_1991 <- sum(data_1991$Population_1991)
+
+# Add percentage column
+data_1991$Percentage_1991 <- (data_1991$Population_1991 / total_population_1991) * 100
+
+# Prepare data for plotting
+data_plot2 <- data_1991 %>%
+  mutate(Percentage_1991 = ifelse(Sex == "M", -Percentage_1991, Percentage_1991))
+
+# Plot the age pyramid
+ggplot(data_plot2, aes(x = Age.group, y = Percentage_1991, fill = Sex)) +
+  geom_bar(stat = "identity", position = "identity", width = 0.7) +
+  coord_flip() +
+  scale_fill_manual(values = c("M" = "#ce4a37", "F" = "#38406b")) +
+  labs(x = "Age Group",
+       y = "Percentage of Population") +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        panel.background = element_rect(fill = "#f7f3e9"))
+
+# Calculate total population for each group
+pop_above_60_1991 <- sum(data_1991[data_1991$Age.group == "Above 80", "Population_1991"]) +
+                      sum(data_1991[data_1991$Age.group %in% c("60-64Y", "65-69Y", "70-74Y", "75-79Y"), "Population_1991"])
+
+pop_working_age_1991 <- sum(data_1991[data_1991$Age.group %in% c("15-19y", "20-24Y", "25-29Y", 
+                                                                "30-34Y", "35-39Y", "40-44Y", 
+                                                                "45-49Y", "50-54Y", "55-59Y"), "Population_1991"])
+
+# Calculate dependency ratio
+dependency_ratio_1991 <- (pop_above_60_1991 / pop_working_age_1991) * 100
+
+# Print the result
+dependency_ratio_1991
+
+
+```
+
+
+
+**YEAR 2001**
+
+```{r}
+# Create the data frame
+data_2001 <- data.frame(
+  Age.group = c("0-4Y", "0-4Y", "5-9Y", "5-9Y", "10-14Y", "10-14Y", "15-19y", "15-19y", 
+                "20-24Y", "20-24Y", "25-29Y", "25-29Y", "30-34Y", "30-34Y", "35-39Y", "35-39Y",
+                "40-44Y", "40-44Y", "45-49Y", "45-49Y", "50-54Y", "50-54Y", "55-59Y", "55-59Y",
+                "60-64Y", "60-64Y", "65-69Y", "65-69Y", "70-74Y", "70-74Y", "75-79Y", "75-79Y",
+                "Above 80", "Above 80"),
+  Sex = c("M", "F", "M", "F", "M", "F", "M", "F", "M", "F", "M", "F", "M", "F", "M", "F",
+          "M", "F", "M", "F", "M", "F", "M", "F", "M", "F", "M", "F", "M", "F", "M", "F",
+          "M", "F"),
+  Population_2001 = c(1409487, 1355677, 1295679, 1248502, 1523842, 1463358, 1484586, 1499920,
+                 1440467, 1543523, 1296905, 1489290, 1185807, 1330656, 1154778, 1311576,
+                 960397, 990887, 952021, 974123, 724701, 712819, 541668, 588576, 480345,
+                 551791, 399671, 502344, 273293, 340129, 173558, 225531, 157345, 231668)
+)
+
+# Calculate total population for percentage calculation
+total_population_2001 <- sum(data_2001$Population_2001)
+
+# Add percentage column
+data_2001$Percentage_2001 <- (data_2001$Population_2001 / total_population_2001) * 100
+
+# Prepare data for plotting
+data_plot3 <- data_2001 %>%
+  mutate(Percentage_2001 = ifelse(Sex == "M", -Percentage_2001, Percentage_2001))
+
+# Plot the age pyramid
+ggplot(data_plot3, aes(x = Age.group, y = Percentage_2001, fill = Sex)) +
+  geom_bar(stat = "identity", position = "identity", width = 0.7) +
+  coord_flip() +
+  scale_fill_manual(values = c("M" = "#ce4a37", "F" = "#38406b")) +
+  labs(x = "Age Group",
+       y = "Percentage of Population") +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        panel.background = element_rect(fill = "#f7f3e9"))
+
+# Calculate total population for each group
+pop_above_60_2001 <- sum(data_2001[data_2001$Age.group == "Above 80", "Population_2001"]) +
+                      sum(data_2001[data_2001$Age.group %in% c("60-64Y", "65-69Y", "70-74Y", "75-79Y"), "Population_2001"])
+
+pop_working_age_2001 <- sum(data_2001[data_2001$Age.group %in% c("15-19y", "20-24Y", "25-29Y", 
+                                                                "30-34Y", "35-39Y", "40-44Y", 
+                                                                "45-49Y", "50-54Y", "55-59Y"), "Population_2001"])
+
+# Calculate dependency ratio
+dependency_ratio_2001 <- (pop_above_60_2001 / pop_working_age_2001) * 100
+
+# Print the result
+dependency_ratio_2001
+```
+
+
+
+
+**YEAR 2011**
+
+```{r}
+# Create the data frame
+data_2011 <- data.frame(
+  Age.group = c("0-4Y", "0-4Y", "5-9Y", "5-9Y", "10-14Y", "10-14Y", "15-19y", "15-19y", 
+                "20-24Y", "20-24Y", "25-29Y", "25-29Y", "30-34Y", "30-34Y", "35-39Y", "35-39Y",
+                "40-44Y", "40-44Y", "45-49Y", "45-49Y", "50-54Y", "50-54Y", "55-59Y", "55-59Y",
+                "60-64Y", "60-64Y", "65-69Y", "65-69Y", "70-74Y", "70-74Y", "75-79Y", "75-79Y",
+                "Above 80", "Above 80"),
+  Sex = c("M", "F", "M", "F", "M", "F", "M", "F", "M", "F", "M", "F", "M", "F", "M", "F",
+          "M", "F", "M", "F", "M", "F", "M", "F", "M", "F", "M", "F", "M", "F", "M", "F",
+          "M", "F"),
+  Population_2011 = c(1247534, 1205558, 1303190, 1251922, 1438917, 1383853, 1328299, 1282253,
+                 1298826, 1366983, 1203978, 1400114, 1128217, 1327284, 1161819, 1417854,
+                 1117424, 1295074, 1105598, 1242932, 931191, 996954, 861527, 880881, 685136,
+                 729535, 459232, 542902, 326562, 406810, 208317, 293050, 204348, 337501)
+)
+
+# Calculate total population for percentage calculation
+total_population_2011 <- sum(data_2011$Population_2011)
+
+# Add percentage column
+data_2011$Percentage_2011 <- (data_2011$Population_2011 / total_population_2011) * 100
+
+# Prepare data for plotting
+data_plot4 <- data_2011 %>%
+  mutate(Percentage_2011 = ifelse(Sex == "M", -Percentage_2011, Percentage_2011))
+
+# Plot the age pyramid
+ggplot(data_plot4, aes(x = Age.group, y = Percentage_2011, fill = Sex)) +
+  geom_bar(stat = "identity", position = "identity", width = 0.7) +
+  coord_flip() +
+  scale_fill_manual(values = c("M" = "#ce4a37", "F" = "#38406b")) +
+  labs(x = "Age Group",
+       y = "Percentage of Population") +
+  theme_minimal() +
+  theme(legend.position = "bottom", ,
+        panel.background = element_rect(fill = "#f7f3e9"))
+
+# Calculate total population for each group
+pop_above_60_2011 <- sum(data_2011[data_2011$Age.group == "Above 80", "Population_2011"]) +
+                      sum(data_2011[data_2011$Age.group %in% c("60-64Y", "65-69Y", "70-74Y", "75-79Y"), "Population_2011"])
+
+pop_working_age_2011 <- sum(data_2011[data_2011$Age.group %in% c("15-19y", "20-24Y", "25-29Y", 
+                                                                "30-34Y", "35-39Y", "40-44Y", 
+                                                                "45-49Y", "50-54Y", "55-59Y"), "Population_2011"])
+
+# Calculate dependency ratio
+dependency_ratio_2011 <- (pop_above_60_2011 / pop_working_age_2011) * 100
+
+# Print the result
+dependency_ratio_2011
+```
